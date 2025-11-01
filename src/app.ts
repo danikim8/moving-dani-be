@@ -37,6 +37,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// 업로드된 이미지 파일 서빙 (AWS S3 제거 후 로컬 파일 시스템 사용)
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 app.get("/health", (req, res) => {
   res.send("Health Check Success");
 });

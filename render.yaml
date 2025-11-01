@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: moving-backend
+    env: node
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Render PostgreSQL 서비스와 연결
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 4000
+      # 소셜 로그인
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # 카카오, 네이버 로그인 제거됨
+      # 서버/클라이언트 URL
+      - key: SERVER_URL
+        sync: false # Render 백엔드 URL
+      - key: CLIENT_URL
+        sync: false # Vercel 프론트엔드 URL
+      # 이미지 서버 (필요시)
+      - key: IMAGE_BASE_URL
+        sync: false
+      # 토큰 만료 시간
+      - key: ACCESS_TOKEN_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      # DeepL API (번역)
+      - key: DEEPL_API_KEY
+        sync: false

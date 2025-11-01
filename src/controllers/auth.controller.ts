@@ -70,7 +70,8 @@ const logOut = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 // 지원하는 소셜 로그인 provider 목록
-const SUPPORTED_PROVIDERS = ["google", "kakao", "naver"] as const;
+// 카카오, 네이버 로그인 제거됨
+const SUPPORTED_PROVIDERS = ["google"] as const;
 type Provider = (typeof SUPPORTED_PROVIDERS)[number];
 
 // 소셜 로그인 시작
@@ -88,8 +89,8 @@ const startSocialLogin = (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
-  //  provider가 kakao일 때 scope를 올바르게 설정
-  const scopes = provider === "kakao" ? ["account_email", "profile_nickname", "profile_image"] : ["profile", "email"]; // 구글, 네이버는 기존 방식 유지 가능
+  // 구글 로그인만 지원
+  const scopes = ["profile", "email"];
 
   // userType을 state에 담아 passport-strategy로 전달
   passport.authenticate(provider, {

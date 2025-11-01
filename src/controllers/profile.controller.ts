@@ -4,7 +4,7 @@ import { CustomError } from "../utils/customError";
 import profileService from "../services/profile.service";
 import { UserType } from "@prisma/client";
 import { getCookieDomain } from "../utils/getCookieDomain";
-import { getCloudFrontUrl } from "../middlewares/uploadMiddleware";
+import { getImageUrl } from "../middlewares/uploadMiddleware";
 
 declare global {
   namespace Express {
@@ -22,9 +22,8 @@ const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
     throw new CustomError(400, "업로드할 프로필 이미지가 없습니다.");
   }
 
-  // CloudFront 우선, 없으면 기존 S3 URL 폴백
-  const cfUrl = file.key ? getCloudFrontUrl(file.key) : undefined;
-  const imageUrl = cfUrl ?? (file.location as string);
+  // AWS S3 제거 - 로컬 파일 저장 또는 외부 스토리지 서비스 사용
+  const imageUrl = getImageUrl(file.filename);
 
   res.status(201).json({
     message: "프로필 이미지가 성공적으로 업로드되었습니다.",
