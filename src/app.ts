@@ -29,7 +29,10 @@ app.use(helmet());
 app.use(morgan("combined"));
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://6-moving-team2-fe-sepia.vercel.app", "https://www.moving-2.click"],
+    origin: [
+      "http://localhost:3000",
+      "https://moving-dani.vercel.app" // 새 Vercel 배포 URL 추가
+    ],
     credentials: true
   })
 );

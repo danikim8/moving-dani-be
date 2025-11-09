@@ -7,7 +7,7 @@ import type { Request, Response, NextFunction } from "express";
 export const cacheMiddleware = (ttl = 300) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Redis 제거로 인해 캐싱 비활성화, 요청을 바로 통과시킴
-    next();
+      next();
   };
 };
 
