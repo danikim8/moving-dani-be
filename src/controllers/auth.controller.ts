@@ -173,7 +173,7 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
         const redirectUrl = new URL(clientUrl || "/", clientUrl);
         redirectUrl.searchParams.set("accessToken", accessToken);
         redirectUrl.searchParams.set("loggedIn", "true");
-        
+
         console.log(`✅ 로그인 성공, 리다이렉트: ${redirectUrl.toString()}`);
         return res.redirect(redirectUrl.toString());
       } catch (error) {

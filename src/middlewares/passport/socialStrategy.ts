@@ -70,13 +70,13 @@ const createSocialVerify =
 // Google OAuth가 설정된 경우에만 Strategy 생성
 export const googleStrategy = isGoogleOAuthConfigured
   ? new GoogleStrategy(
-      {
+  {
         clientID: GOOGLE_CLIENT_ID!,
         clientSecret: GOOGLE_CLIENT_SECRET!,
-        callbackURL: `${SERVER_URL}/auth/social/google/callback`,
-        passReqToCallback: true
-      },
-      createSocialVerify(AuthProvider.GOOGLE)
+    callbackURL: `${SERVER_URL}/auth/social/google/callback`,
+    passReqToCallback: true
+  },
+  createSocialVerify(AuthProvider.GOOGLE)
     )
   : null;
 
