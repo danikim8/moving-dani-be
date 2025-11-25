@@ -128,35 +128,54 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
       try {
         const { accessToken, refreshToken } = await authService.handleSocialLogin(user);
 
-        res.cookie("accessToken", accessToken, {
-          httpOnly: false,
-          sameSite: "lax",
-          secure: true,
-          maxAge: 15 * 60 * 1000,
-          domain: getCookieDomain()
-        });
+        const cookieDomain = getCookieDomain();
+        const clientUrl = process.env.CLIENT_URL || "";
 
-        // refreshToken은 기존대로 httpOnly 쿠키로 저장
-        res.cookie("refreshToken", refreshToken, {
-          httpOnly: true,
+        // 쿠키 설정 로그 (디버깅용)
+        console.log("🍪 쿠키 설정 정보:");
+        console.log(`  CLIENT_URL: ${clientUrl}`);
+        console.log(`  Cookie Domain: ${cookieDomain || "undefined (same domain)"}`);
+        console.log(`  Redirect URL: ${clientUrl || "/"}`);
+
+        // 크로스 도메인 쿠키 설정을 위한 옵션
+        const cookieOptions = {
+          httpOnly: false, // accessToken은 클라이언트에서 읽을 수 있어야 함
+          sameSite: "none" as const, // 크로스 도메인을 위해 none 사용
+          secure: true, // HTTPS 필수
+          maxAge: 15 * 60 * 1000, // 15분
           path: "/",
-          sameSite: "lax",
+          ...(cookieDomain ? { domain: cookieDomain } : {}) // 도메인이 있으면 설정, 없으면 생략
+        };
+
+        const refreshCookieOptions = {
+          httpOnly: true,
+          sameSite: "none" as const, // 크로스 도메인을 위해 none 사용
           secure: true,
-          domain: getCookieDomain()
-        });
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+          path: "/",
+          ...(cookieDomain ? { domain: cookieDomain } : {})
+        };
+
+        res.cookie("accessToken", accessToken, cookieOptions);
+        res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
         // 환영 토스트를 띄우기 위한 임시 쿠키 설정 (유효시간 60초)
         res.cookie("welcome_toast", "true", {
-          httpOnly: false, // 클라이언트 JS에서 읽을 수 있어야 하므로 false
-          sameSite: "lax",
+          httpOnly: false,
+          sameSite: "none" as const,
           secure: true,
           maxAge: 60 * 1000,
           path: "/",
-          domain: getCookieDomain()
+          ...(cookieDomain ? { domain: cookieDomain } : {})
         });
 
-        // 로그인 성공 후 클라이언트 메인 페이지로 리다이렉트
-        return res.redirect(process.env.CLIENT_URL || "/");
+        // 로그인 성공 후 클라이언트 메인 페이지로 리다이렉트 (쿠키를 URL 파라미터로도 전달)
+        const redirectUrl = new URL(clientUrl || "/", clientUrl);
+        redirectUrl.searchParams.set("accessToken", accessToken);
+        redirectUrl.searchParams.set("loggedIn", "true");
+        
+        console.log(`✅ 로그인 성공, 리다이렉트: ${redirectUrl.toString()}`);
+        return res.redirect(redirectUrl.toString());
       } catch (error) {
         next(error);
       }
