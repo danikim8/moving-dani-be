@@ -2,7 +2,7 @@ services:
   - type: web
     name: moving-backend
     env: node
-    buildCommand: npm ci && npx prisma generate && npm run build && npx prisma migrate deploy
+    buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: npm start
     envVars:
       - key: NODE_ENV
