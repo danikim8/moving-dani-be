@@ -89,6 +89,15 @@ const startSocialLogin = (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
+  // Google OAuth 환경 변수 확인
+  if (provider === "google") {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      console.error("❌ Google OAuth 환경 변수가 설정되지 않았습니다.");
+      res.status(500).json({ message: "Google 로그인 설정 오류가 발생했습니다." });
+      return;
+    }
+  }
+
   // 구글 로그인만 지원
   const scopes = ["profile", "email"];
 

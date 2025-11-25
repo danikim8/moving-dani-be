@@ -17,9 +17,19 @@ interface ProfileWithJson extends PassportProfile {
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SERVER_URL, CLIENT_URL } = process.env;
 
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !SERVER_URL || !CLIENT_URL) {
-  console.error("환경 변수 누락");
-  process.exit(1);
+// 환경 변수 검증 (서버 종료하지 않고 경고만 표시)
+const isGoogleOAuthConfigured = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && SERVER_URL && CLIENT_URL);
+
+if (!isGoogleOAuthConfigured) {
+  console.warn("⚠️  Google OAuth 환경 변수 누락:");
+  console.warn(`  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID ? "✅ 설정됨" : "❌ 없음"}`);
+  console.warn(`  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET ? "✅ 설정됨" : "❌ 없음"}`);
+  console.warn(`  SERVER_URL: ${SERVER_URL || "❌ 없음"}`);
+  console.warn(`  CLIENT_URL: ${CLIENT_URL || "❌ 없음"}`);
+  console.warn("⚠️  Google 로그인이 비활성화됩니다. 환경 변수를 설정하고 서버를 재시작하세요.");
+} else {
+  console.log("✅ Google OAuth 환경 변수 확인 완료");
+  console.log(`  Callback URL: ${SERVER_URL}/auth/social/google/callback`);
 }
 
 type NormalizedOAuthProfile = {
@@ -57,14 +67,27 @@ const createSocialVerify =
     }
   };
 
-export const googleStrategy = new GoogleStrategy(
-  {
-    clientID: GOOGLE_CLIENT_ID,
-    clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: `${SERVER_URL}/auth/social/google/callback`,
-    passReqToCallback: true
-  },
-  createSocialVerify(AuthProvider.GOOGLE)
-);
+// Google OAuth가 설정된 경우에만 Strategy 생성
+export const googleStrategy = isGoogleOAuthConfigured
+  ? new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID!,
+        clientSecret: GOOGLE_CLIENT_SECRET!,
+        callbackURL: `${SERVER_URL}/auth/social/google/callback`,
+        passReqToCallback: true
+      },
+      createSocialVerify(AuthProvider.GOOGLE)
+    )
+  : null;
+
+// Google OAuth 설정 검증 로그
+if (isGoogleOAuthConfigured) {
+  console.log("🔍 Google OAuth Strategy 설정:");
+  console.log(`  Client ID: ${GOOGLE_CLIENT_ID?.substring(0, 20)}...`);
+  console.log(`  Client Secret: ${GOOGLE_CLIENT_SECRET ? "✅ 설정됨" : "❌ 없음"}`);
+  console.log(`  Callback URL: ${SERVER_URL}/auth/social/google/callback`);
+} else {
+  console.log("⚠️  Google OAuth Strategy가 생성되지 않았습니다 (환경 변수 누락)");
+}
 
 // 카카오, 네이버 로그인 제거됨
