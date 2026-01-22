@@ -1,0 +1,17 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # 5분마다 실행 (UTC 기준)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          curl -f https://moving-dani-be.onrender.com/health || echo "Ping failed"
+      - name: Log Success
+        run: echo "Service pinged successfully"
