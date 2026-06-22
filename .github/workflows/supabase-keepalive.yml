@@ -12,7 +12,8 @@ jobs:
     steps:
       - name: Ping Database
         # DATABASE_URL 시크릿으로 가벼운 쿼리 1회 실행하여 활성 상태 유지
-        run: psql "$DATABASE_URL" -c "SELECT 1;"
+        # Prisma 전용 파라미터(?schema=public 등)는 psql이 모르므로 제거 후 SSL 강제
+        run: psql "${DATABASE_URL%%\?*}?sslmode=require" -c "SELECT 1;"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Log Success
