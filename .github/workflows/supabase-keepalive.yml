@@ -1,0 +1,19 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # 3일마다 00:00 UTC (한국시간 09:00)에 실행 — 7일 비활성 정지 방지
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Database
+        # DATABASE_URL 시크릿으로 가벼운 쿼리 1회 실행하여 활성 상태 유지
+        run: psql "$DATABASE_URL" -c "SELECT 1;"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Log Success
+        run: echo "Supabase pinged successfully"
