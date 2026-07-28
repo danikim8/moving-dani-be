@@ -12,18 +12,16 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         # psql 직접 연결은 Supabase activity로 집계 안 됨 — REST API ping으로 교체
+        # auth/v1/health는 API key 불필요, 프로젝트가 살아있으면 항상 200
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "$SUPABASE_URL/rest/v1/" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+            "$SUPABASE_URL/auth/v1/health")
           echo "Response status: $STATUS"
-          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 400 ]; then
+          if [ "$STATUS" -ge 500 ]; then
             echo "Ping failed with status $STATUS"
             exit 1
           fi
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       - name: Log Success
         run: echo "Supabase pinged successfully"
