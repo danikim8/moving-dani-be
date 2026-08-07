@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       database_url:
-        description: 'New Database Connection URL (postgresql://...)'
+        description: "New Database Connection URL (postgresql://...)"
         required: true
 
 jobs:
@@ -12,25 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-    - name: Run Prisma Migrate
-      # 입력받은 DB URL로 마이그레이션 적용
-      run: npx prisma migrate deploy
-      env:
-        DATABASE_URL: ${{ inputs.database_url }}
+      - name: Run Prisma Migrate
+        # 입력받은 DB URL로 마이그레이션 적용
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ inputs.database_url }}
 
-    - name: Run Prisma Seed
-      # 입력받은 DB URL로 시딩 실행
-      run: npx prisma db seed
-      env:
-        DATABASE_URL: ${{ inputs.database_url }}
+      - name: Run Prisma Seed
+        # 입력받은 DB URL로 시딩 실행
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: ${{ inputs.database_url }}
