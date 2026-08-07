@@ -1,0 +1,24 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # 14분마다 실행 — Render 무료 티어는 15분간 요청이 없으면 슬립되고,
+    # 다음 요청에서 콜드스타트로 30~60초가 걸림. 그보다 촘촘하게 핑해서 슬립을 막는다.
+    # (레포가 public이라 GitHub Actions 사용 시간은 무제한/무료)
+    - cron: "*/14 * * * *"
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render /health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://moving-dani-be.onrender.com/health)
+          echo "Response status: $STATUS"
+          if [ "$STATUS" -ge 500 ]; then
+            echo "Ping failed with status $STATUS"
+            exit 1
+          fi
+      - name: Log Success
+        run: echo "Render backend pinged successfully"

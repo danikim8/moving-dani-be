@@ -368,3 +368,62 @@ model DriverEstimateRejection {
   @@index([driverId])
   @@index([estimateRequestId])
 }
+
+//////////////////// AGENT (이사 견적 추정 에이전트) ////////////////////
+// 아래 모델들은 기존 EstimateRequest/Estimate(실제 견적 플로우)와 별개로,
+// LLM+MCP 기반 "예상 견적 추정" 기능을 위해 신설됨. 접두사 Agent로 기존 도메인과 구분.
+
+// 추정 신뢰도 (과거 데이터 표본 크기 기반)
+enum AgentConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// 에이전트 견적 추정 요청 + 결과
+model AgentEstimate {
+  id           String          @id @default(cuid())
+  moveType     MoveType // 이사 유형
+  fromRegion   RegionType // 출발 지역
+  toRegion     RegionType // 도착 지역
+  moveDate     DateTime // 이사 예정일
+  itemVolume   Int // 짐 양 (박스 수 환산)
+  estimatedMin Int // 추정 최소가
+  estimatedMax Int // 추정 최대가
+  confidence   AgentConfidence // 추정 신뢰도
+  reasoning    String          @db.Text // LLM이 생성한 최종 근거 설명
+  createdAt    DateTime        @default(now())
+
+  feedback AgentEstimateFeedback?
+  logs     AgentLog[]
+
+  @@index([moveType, fromRegion, toRegion])
+  @@index([createdAt])
+}
+
+// 추정 결과에 대한 사용자 피드백 (다음 추정 시 컨텍스트로 반영)
+model AgentEstimateFeedback {
+  id              String   @id @default(cuid())
+  agentEstimateId String   @unique
+  actualPrice     Int? // 실제로 받은 견적가 (사용자 입력, optional)
+  wasAccurate     Boolean // 예측이 맞았다고 느꼈는지
+  createdAt       DateTime @default(now())
+
+  agentEstimate AgentEstimate @relation(fields: [agentEstimateId], references: [id])
+}
+
+// 에이전트 실행 단계별 관찰 로그 (MCP call_tool 요청/응답 원본 포함)
+model AgentLog {
+  id              String   @id @default(cuid())
+  agentEstimateId String
+  step            Int // 몇 번째 단계인지
+  toolName        String // 호출한 MCP 도구 이름
+  toolInput       Json // 도구 입력 (call_tool 요청 arguments)
+  toolOutput      Json // 도구 출력 (call_tool 응답 결과)
+  reasoning       String   @db.Text // 왜 이 도구를 호출했는지 (LLM이 생성)
+  createdAt       DateTime @default(now())
+
+  agentEstimate AgentEstimate @relation(fields: [agentEstimateId], references: [id])
+
+  @@index([agentEstimateId])
+}

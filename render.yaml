@@ -35,3 +35,6 @@ services:
       # DeepL API (번역)
       - key: DEEPL_API_KEY
         sync: false
+      # 이사 견적 추정 에이전트 (Gemini)
+      - key: GEMINI_API_KEY
+        sync: false
